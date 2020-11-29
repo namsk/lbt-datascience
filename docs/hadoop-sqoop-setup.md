@@ -36,3 +36,10 @@ export SQOOP_HOME=/usr/local/sqoop
 export PATH=$SQOOP_HOME/bin:$PATH
 ```
 
+#### 데이터 임포트 동작 방식
+
+![Sqoop 데이터 임포트](./images/sqoop-data-import.png)
+
+#### 데이터 익스포트 동작 방식
+
+![Sqoop 데이터 익스포트](./images/sqoop-data-export.png)
