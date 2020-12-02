@@ -74,3 +74,190 @@ hdfs dfs -chmod 777 /tmp/hive
 hive> show databases;
 hive> quit;
 ```
+
+#### 데이터베이스 관리
+
+```bash
+# 데이터베이스의 생성과 관리
+create database <데이터베이스명>;
+use <데이터베이스명>;
+# 데이터베이스 삭제
+drop database <데이터베이스명>;
+# 데이터베이스 내 테이블 확인
+show tables;
+```
+
+#### 테이블 생성
+
+- CREATE TABLE 문 사용
+  - ROW FORMAT 절을 제외하면 SQL과 매우 유사
+  - CREATE EXTERNAL TABLE을 사용하면 외부 테이블 생성 가능
+    - 외부 테이블은 테이블을 DROP 해도 데이터가 보관된다는 장점
+
+```sql
+-- 기본 문법
+CREATE EXTERNAL TABLE airline(
+    YEAR INT,
+    MONTH INT,
+    DAY_OF_MONTH INT,
+    DAY_OF_WEEK INT,
+    FL_DATE DATE,
+    UNIQUE_CARRIER STRING,
+    TAIL_NUM STRING,
+    FL_NUM STRING,
+    ORIGIN_AIRPORT_ID STRING,
+    ORIGIN STRING,
+    ORIGIN_STATE_ABR STRING,
+    DEST_AIRPORT_ID STRING,
+    DEST STRING,
+    DEST_STATE_ABR STRING,
+    CRS_DEP_TIME INT,
+    DEP_TIME FLOAT,
+    DEP_DELAY FLOAT,
+    DEP_DELAY_NEW FLOAT,
+    DEP_DEL15 STRING,
+    DEP_DELAY_GROUP STRING,
+    TAXI_OUT INT,
+    WHEELS_OFF INT,
+    WHEELS_ON INT,
+    TAXI_IN INT,
+    CRS_ARR_TIME INT,
+    ARR_TIME FLOAT,
+    ARR_DELAY FLOAT,
+    ARR_DELAY_NEW FLOAT,
+    ARR_DEL15 STRING,
+    ARR_DELAY_GROUP STRING,
+    CANCELLED STRING,
+    CANCELLATION_CODE STRING,
+    DIVERTED STRING,
+    CRS_ELAPSED_TIME INT,
+    ACTUAL_ELAPSED_TIME INT,
+    AIR_TIME INT,
+    FLIGHTS INT, 
+    DISTANCE INT,
+    DISTANCE_GROUP STRING,
+    CARRIER_DELAY INT,
+    WEATHER_DELAY INT,
+    NAS_DELAY INT,
+    SECURITY_DELAY INT,
+    LATE_AIRCRAFT_DELAY INT
+)
+COMMENT 'airline csv data'
+ROW FORMAT DELIMITED
+    FIELDS TERMINATED BY ','
+    LINES TERMINATED BY '\n'
+    STORED AS TEXTFILE
+LOCATION '/user/hadoop/input';
+
+-- 테이블 구조 확인
+DESCRIBE airline;
+SELECT * FROM airline limit 10;
+-- 이 테이블의 문제는 무엇입니까?
+
+-- SERDE를 이용한 고급 문법
+CREATE EXTERNAL TABLE airline(
+    YEAR INT,
+    MONTH INT,
+    DAY_OF_MONTH INT,
+    DAY_OF_WEEK INT,
+    FL_DATE DATE,
+    UNIQUE_CARRIER STRING,
+    TAIL_NUM STRING,
+    FL_NUM STRING,
+    ORIGIN_AIRPORT_ID STRING,
+    ORIGIN STRING,
+    ORIGIN_STATE_ABR STRING,
+    DEST_AIRPORT_ID STRING,
+    DEST STRING,
+    DEST_STATE_ABR STRING,
+    CRS_DEP_TIME INT,
+    DEP_TIME FLOAT,
+    DEP_DELAY FLOAT,
+    DEP_DELAY_NEW FLOAT,
+    DEP_DEL15 STRING,
+    DEP_DELAY_GROUP STRING,
+    TAXI_OUT INT,
+    WHEELS_OFF INT,
+    WHEELS_ON INT,
+    TAXI_IN INT,
+    CRS_ARR_TIME INT,
+    ARR_TIME FLOAT,
+    ARR_DELAY FLOAT,
+    ARR_DELAY_NEW FLOAT,
+    ARR_DEL15 STRING,
+    ARR_DELAY_GROUP STRING,
+    CANCELLED STRING,
+    CANCELLATION_CODE STRING,
+    DIVERTED STRING,
+    CRS_ELAPSED_TIME INT,
+    ACTUAL_ELAPSED_TIME INT,
+    AIR_TIME INT,
+    FLIGHTS INT, 
+    DISTANCE INT,
+    DISTANCE_GROUP STRING,
+    CARRIER_DELAY INT,
+    WEATHER_DELAY INT,
+    NAS_DELAY INT,
+    SECURITY_DELAY INT,
+    LATE_AIRCRAFT_DELAY INT
+)
+COMMENT 'airline csv data'
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES(
+    "separatorChar" = ",",
+    "quoteChar" = "\""
+)
+LOCATION '/user/hadoop/input'
+tblproperties('skip.header.line.count'='1');
+
+-- 이 방식의 장점과 단점은 무엇입니까?
+
+DESCRIBE airline;
+SELECT * FROM airline LIMIT 10;
+```
+
+#### SELECT
+
+- SELECT 문은 SQL과 거의 유사
+- 질의를 실행하면 맵리듀스 잡을 실행
+- 최근 버전의 하이브는 LIMIT 조건으로 테이블을 조회하면 파일을 직접 조회하여 출력(즉시 출력)
+  
+```SQL
+-- 기본적인 SELECT
+SELECT * FROM airline WHERE year=2010 LIMIT 10;
+```
+
+#### 집계 함수
+
+- COUNT(1), COUNT(*) : 전체 데이터의 건수를 반환
+- SUM(컬럼) : 컬럼 값의 합계
+- AVG(컬럼) : 컬럼 값의 평균
+- DISTINCT : 유일한 값 반환
+- MIN(컬럼) : 최솟값
+- MAX(컬럼) : 최댓값
+
+```SQL
+-- 2010년 항공 정보의 건수 조회
+SELECT COUNT(1) 
+FROM airline
+WHERE year=2010
+```
+
+- GROUP BY, ORDER BY도 가능
+
+```SQL
+SELECT year, month, count(if(ARR_DELAY>0, "", NULL)) 
+FROM airline 
+GROUP BY year, month
+ORDER BY year, month;
+```
+
+#### INSERT
+
+```SQL
+INSERT OVERWRITE DIRECTORY 'output/hive_dept_delay' 
+  SELECT year, month, count(if(dep_delay>0, "", NULL)) 
+  FROM airline_201x 
+  GROUP BY year, month 
+  ORDER BY year, month;
+```
