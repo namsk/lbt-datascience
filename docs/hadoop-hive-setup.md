@@ -518,8 +518,9 @@ GROUP BY a.year, a.unique_carrier, b.description;
 ```SQL
 -- 도착 지연시간 통계를 HDFS로 덤프
 INSERT OVERWRITE DIRECTORY 'output/hive_dept_delay' 
-  SELECT year, month, count(if(dep_delay>0, "", NULL)) 
-  FROM airline_201x 
+  SELECT year, month, count(*) 
+  FROM airline_delay
+  WHERE dep_delay > 0 
   GROUP BY year, month 
   ORDER BY year, month;
 ```
