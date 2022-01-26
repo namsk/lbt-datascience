@@ -1,4 +1,4 @@
-# Installing MarinDB on Ubuntu
+# Installing MariaDB on Ubuntu
 
 ## MariaDB
 
