@@ -97,7 +97,8 @@ cp hive-default.xml hive-site.xml
 ```
 
 - 하이브 메타스토어 접근을 위한 계정 생성
-  - hive/hive
+  - 계정: hive/hive
+  - 데이터베이스: hive
 
 
 #### Hive 실행을 위한 필수 디렉터리를 HDFS에 생성 및 설정
@@ -115,11 +116,20 @@ hdfs dfs -chmod 777 /tmp/hive
 
 - mysql.com > Download Connector/J
 - 설치 후 jar 파일을 $HIVE_HOME/lib에 복사
-
+  - mysql.com
+    - Downloads > MySQL Community (GPL) > Connector/J
+    - Archives 
+      - Product Version : 8.0.27
+      - Operating System : Ubuntu Linux
 
 ```bash
 sudo dpkg -i mysql-connector-java_8.0.27-1ubuntu20.04_all.deb
 ```
+
+    - GA
+      - Operating System : Platform Independent
+
+
 
 #### 메타스토어 초기화(Derby 사용시)
 
